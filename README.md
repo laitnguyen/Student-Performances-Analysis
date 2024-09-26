@@ -1,4 +1,4 @@
-# Student's Performances Analysis
+# Student Performance Analysis
 
 The success of an education system is generally determined by students’ academic
 achievement which could be affected by various factors in a modern complex environment.
