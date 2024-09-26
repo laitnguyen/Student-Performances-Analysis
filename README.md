@@ -1,4 +1,5 @@
-# Student-Performances-Analysis
+#Student's Performances Analysis
+
 The success of an education system is generally determined by students’ academic
 achievement which could be affected by various factors in a modern complex environment.
 Analyzing students’ work and understanding antecedents of students’ learning performance, thus,
@@ -8,6 +9,7 @@ which consequently improves teaching quality. Therefore, the purpose of this cur
 investigate determinants of students’ academic performance by considering a series of factors such
 as gender, parents’ education level, test preparation, and students’ lunch meal. To specify, this
 project aims to address the following questions:
+
 1. Whether the performance of female students significantly differs from that of male ones
 on average.
 2. Whether the students’ learning performance varies across the ethnic groups.
@@ -15,6 +17,7 @@ on average.
 4. Whether test preparation plays a critical role in improving students’ performance.
 5. Whether there is any difference in academic performance of students who have free
 lunch versus those who have the standard meal.
+
 To meet the abovementioned objectives, this project has conducted a statistical procedure.
 First, the original data set has been transformed by recoding categorical values of nominal
 variables to numeric forms. Second, an exploratory data analysis has been performed to identify
