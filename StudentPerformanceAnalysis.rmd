@@ -1,0 +1,186 @@
+---
+title: "SemesterProject-STA6704-TrungLaiNGUYEN"
+author: "Trung Lai Nguyen"
+date: '2022-07-02'
+output: pdf_document
+---
+```{r}
+library(dplyr)
+library(tidyr)
+library(magrittr)
+library(tidyverse)
+library(modelr)
+```
+
+## 1. Data Summary
+```{r}
+#Loading the data set
+stud_data <-read.csv(
+  file = "/Users/lai/Documents/Learning/MSDA/3-SUMMER22/STA6704/Dataset/StudentsPerformanceExams.csv")%>%
+    transmute(Gender = fct_recode(as.factor(gender), Female="female", Male="male"),
+           Race_Ethnicity = as.factor(`race.ethnicity`),
+           Education_level = as.factor(`parental.level.of.education`),
+           Lunch = as.factor(lunch),
+           Test_preparation = as.factor(`test.preparation.course`),
+           Math_score = `math.score`,
+           Reading_score = `reading.score`,
+           Writing_score = `writing.score`)
+head(stud_data, n=10)
+summary(stud_data)
+```
+
+
+## 2. Get the overall score
+```{r}
+stud_data <- mutate(stud_data,
+    overall = round((Math_score + Reading_score + Writing_score)/3),
+    gpa = ifelse(overall>=90 & overall<=100, "A",
+                                     ifelse(overall>=80 & overall<90, "B",
+                                     ifelse(overall>=70 & overall<80, "C",
+                                     ifelse(overall>=60 & overall<70, "D",
+                                     ifelse(overall>=0 & overall<60, "F", NA))))))
+```
+
+```{r}
+ggplot(stud_data) +
+  geom_bar(aes(x=gpa, y=..prop.., group=1, fill='gpa')) +
+  coord_cartesian(ylim = c(0, 0.5)) +
+  labs(
+    x = "GPA",
+    y = "Propotion of Student")
+```
+
+```{r}
+avg_math <- summarize(stud_data, mean_math_score = round(mean(Math_score, na.rm=TRUE)))
+avg_write <- summarize(stud_data, mean_write_score = round(mean(Writing_score, na.rm=TRUE)))
+avg_read <- summarize(stud_data, mean_read_score = round(mean(Reading_score,na.rm=TRUE)))
+avg_gpa <- summarize(stud_data, mean_gpa = mean(overall, na.rm=TRUE))
+avg_testprep <- group_by(stud_data, Test_preparation)%>%
+  summarize(mean_testprep = mean(overall, na.rm=TRUE))
+
+avg_math
+avg_write
+avg_read
+avg_gpa
+avg_testprep
+```
+
+```{r}
+ggplot(stud_data) +
+    geom_boxplot(aes(x=Gender, y=Math_score, fill=Gender)) + scale_fill_manual(breaks = stud_data$Gender, values = c("#F4A582", "#353436")) +
+    geom_hline(yintercept=avg_math$mean_math_score, linetype="dashed", color="red") +
+    labs(
+        title = "Figure 2. Math scores by gender of students",
+        y = "Math score",
+        x = "Gender of student",
+        caption = "Note: The orange dashed line is the students average Math score."
+    )
+```
+```{r}
+library(ggplot2)
+ggplot(stud_data) + scale_fill_brewer(palette="Dark2") +
+    geom_boxplot(aes(x=Gender, y=Writing_score, fill = Gender)) + scale_fill_manual(breaks = stud_data$Gender, values = c("#F4A582", "#353436")) +
+    geom_hline(yintercept=avg_write$mean_write_score, linetype="dashed", color="red") +
+    labs(
+        title = "Figure 3. Writing scores by gender of students",
+        y = "Writing score",
+        x = "Gender of student", 
+        caption = "Note: The red dashed line is the students average Writing score."
+    )
+```
+```{r}
+library(ggplot2)
+ggplot(stud_data) + scale_fill_brewer(palette="Dark2") +
+    geom_boxplot(aes(x=Gender, y=Reading_score, fill = Gender)) + scale_fill_manual(breaks = stud_data$Gender, values = c("#F4A582", "#353436")) +
+    geom_hline(yintercept=avg_read$mean_read_score, linetype="dashed", color="red") +
+    labs(
+        title = "Figure 4. Reading scores by gender of students",
+        y = "Reading score",
+        x = "Gender of student", 
+        caption = "Note: The red dashed line is the students average Writing score."
+    )
+```
+```{r}
+ggplot(stud_data) + 
+  geom_freqpoly(aes(x=overall, y=..density..,color=Gender)) + 
+  geom_vline(xintercept = 60, color = "orange", size = 0.5, linetype = "dashed") +
+  geom_vline(xintercept = 70, color = "green", size = 0.5, linetype ="dashed") +
+  geom_vline(xintercept = 80, color ="black", size = 0.5, linetype = "dashed") +
+  geom_vline(xintercept = 90, color = "purple", size = 0.5, linetype ="dashed") +
+  labs(
+    title = "Figure 5. Overall score Female vs. Male",
+    x = "Overall Score",
+    y = "Density",
+  )
+```
+```{r}
+ggplot(stud_data) +
+    geom_boxplot(aes(x=Race_Ethnicity, y=overall, fill=Race_Ethnicity )) + 
+    labs(
+    title = "Figure 6. Overall scores for each racial/ethnic group",
+    x = "Ethnic/Racial group",
+    y = "Overall score"
+    )
+```
+
+```{r}
+stud_data %>% mutate(parent_educ = fct_relevel(Education_level, "some high school", "high school", "some college", "associate degree", "bachelor's degree", "master's degree")) %>%
+ggplot() + 
+    geom_boxplot(aes(x=Education_level, y=overall, fill=Education_level)) +
+    coord_flip() +
+    labs(
+    title = "Figure 7. Overall scores and parent education level",
+    x = "Parent education level",
+    y = "Overall score"
+    )
+```
+```{r}
+ggplot(stud_data) + 
+    geom_boxplot(aes(x=Lunch, y=overall, fill=Lunch)) +
+    geom_hline(yintercept=avg_gpa$mean_gpa, linetype="dashed", color="red") +
+    labs(
+    title = "Figure 8. Overall scores whether student is eligible for\nfree/reduced lunch",
+    x = "Lunch",
+    y = "Overall Score",
+    caption = "Note: The red dashed line is the average overall score of the students."
+    )
+```
+```{r}
+ggplot(stud_data) + 
+    geom_boxplot(aes(x=Test_preparation, y=overall, fill=Test_preparation)) +
+    geom_point(data=avg_testprep, aes(x=Test_preparation, y=mean_testprep), shape=1, color="yellow", size=3) +
+    labs(
+    title = "Figure 9. Overall scores whether a student completed\none test preparation course",
+    x = "Completion of test preparation course",
+    y = "Overall score",
+    caption = "Note: The yellow cycle marks the average score of each group."
+    )
+```
+```{r}
+#Transform the data set to create model
+
+stud_data <- stud_data %>%
+  mutate(
+    Female = as.factor(ifelse(Gender=="Female", 1, 0)),
+    Degree = as.factor(ifelse(Education_level=="associate's degree" | Education_level=="bachelor's degree" | Education_level=="master's degree", 1, ifelse(Education_level=="high school" | Education_level=="some college" | Education_level=="some high school", 0, NA))), 
+    Test_preparation = fct_relevel(Test_preparation, "none", "completed"),
+    Lunch = fct_relevel(Lunch, "free/reduced", "standard")
+  )
+head(stud_data, n=10)
+```
+```{r}
+model <- lm(overall ~ female + Race_Ethnicity + Degree + Test_preparation + Lunch, data = stud_data)
+```
+```{r}
+set.seed(123)
+mean_rmse <- crossv_kfold(stud_data, k=5) %>%
+    mutate(fit = map(train, 
+                     ~ lm(overall ~ female + Race_Ethnicity + Degree + 
+                          Test_preparation + Lunch, data=.)),
+           rmse_test = map2_dbl(fit, test, ~ rmse(.x, .y)))
+summarize(mean_rmse, rmse_cv = mean(mean_rmse$rmse_test))
+```
+```{r}
+summary(model)
+```
+
